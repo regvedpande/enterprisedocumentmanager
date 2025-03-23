@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Management System</title>
+</head>
+<body>
+<style>
+  /*
+     Enhanced styling (no external frameworks).
+     Feel free to adjust colors to your liking.
+  */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
+
+  body {
+    background: #ecf0f1; /* Light gray background */
+    padding: 20px;
+    color: #2c3e50; /* Dark text color */
+  }
+
+  /* NAVBAR */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(45deg, #34495e, #2c3e50);
+    color: #fff;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 8px; /* Slightly rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  nav div a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 15px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  nav div a:hover {
+    color: #f39c12; /* Subtle orange on hover */
+  }
+
+  /* MAIN CONTENT CONTAINER */
+  .container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font-size: 28px;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  h2 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #2c3e50;
+    border-left: 4px solid #2980b9;
+    padding-left: 10px;
+  }
+
+  form {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  input[type="text"],
+  input[type="file"] {
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="file"]:focus {
+    outline: none;
+    border-color: #2980b9;
+  }
+
+  button {
+    padding: 10px 16px;
+    background: #2980b9;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  button:hover {
+    background: #1f6c92;
+    transform: translateY(-2px);
+  }
+
+  /* TABLE STYLING */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures radius applies to table edges */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+
+  th {
+    background: #bdc3c7;
+    font-weight: 700;
+  }
+
+  tbody tr:hover {
+    background: #f8f8f8;
+  }
+
+  .no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+  }
+
+  /* LINKS INSIDE TABLE (DOWNLOAD, ETC.) */
+  table a {
+    color: #2980b9;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  table a:hover {
+    color: #1f6c92;
+  }
+</style>
+
+<!-- Navbar -->
+<nav>
+  <div style="font-weight: 600; font-size: 20px;">
+    Document Management System
+  </div>
+  <div>
+    <a href="/">Home</a>
+    <!-- If you're using Basic Auth, the browser will handle the login prompt. -->
+  </div>
+</nav>
+
+<!-- Main Content Container -->
+<div class="container">
+  <h1>Document Management</h1>
+
+  <!-- Upload Section -->
+  <section>
+    <h2>Upload Document</h2>
+    <form th:object="${uploadDto}" th:action="@{/documents/upload}" method="post" enctype="multipart/form-data">
+      <label for="title">Title</label>
+      <input type="text" id="title" th:field="*{title}" required/>
+      <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color:red;"></span>
+
+      <label for="file">File</label>
+      <input type="file" id="file" th:field="*{file}" required/>
+      <span th:if="${#fields.hasErrors('file')}" th:errors="*{file}" style="color:red;"></span>
+
+      <button type="submit">Upload</button>
+    </form>
+  </section>
+
+  <!-- Search Section -->
+  <section>
+    <h2>Search Documents</h2>
+    <form th:action="@{/documents/search}" method="get" style="display: flex; gap: 10px;">
+      <input type="text" name="query" placeholder="Search documents..."/>
+      <button type="submit">Search</button>
+    </form>
+  </section>
+
+  <!-- Documents Table -->
+  <section>
+    <h2>Documents</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>Title</th>
+        <th>File Name</th>
+        <th>Version</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="doc : ${documents}">
+        <td th:text="${doc.title}"></td>
+        <td th:text="${doc.fileName}"></td>
+        <td th:text="${doc.version}"></td>
+        <!-- Use #temporals.format for LocalDateTime fields -->
+        <td th:text="${#temporals.format(doc.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+        <td>
+          <a th:href="@{/documents/download/{id}(id=${doc.id})}">Download</a>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(documents)}">
+        <td colspan="5" class="no-data">No documents found.</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<!-- Optional WebSocket Code (commented out)
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2/dist/stomp.min.js"></script>
+<script>
+  let stompClient = null;
+  function connectWebSocket() {
+    const socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, function(frame) {
+      console.log('Connected to WebSocket:', frame);
+      stompClient.subscribe('/topic/documentUpdates', function(message) {
+        console.log("Received update:", JSON.parse(message.body));
+      });
+    });
+  }
+  connectWebSocket();
+</script>
+-->
+</body>
+</html>
